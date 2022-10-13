@@ -30,52 +30,103 @@ namespace WpfApp2
         public string Math(string numbers)
         {
             float[] otveti = new float[100];
+            if(!numbers.Contains('*')&& !numbers.Contains('/')&& !numbers.Contains('+')&& !numbers.Contains('-'))
+            {
+                return numbers;
+            }
             if (numbers.Contains('('))
             {
-                numbers = Skobka(numbers);
-                return numbers;
+                numbers = InBrackets(numbers);
+                numbers = Math(numbers);
             }
-            if (numbers.Contains('*'))
+            for(int i = 0; i < numbers.Length; i++)
             {
-                numbers = Umnojenie(otveti, numbers.IndexOf('*'), numbers);
-                return numbers;
-            }
-            if (numbers.Contains('/'))
-            {
-                numbers = Delenie(otveti, numbers.IndexOf('/'), numbers);
-                return numbers;
-            }
-            if (numbers.Contains('+'))
-            {
-                numbers = Slojenie(otveti, numbers.IndexOf('+'), numbers);
-                return numbers;
-            }
-            for(int i=0; i<numbers.Length; i++)
-            {
-                if (!Char.IsNumber(numbers[i]) && numbers[i] != '-' && numbers[i] != ',')
+                bool check = !Char.IsNumber(numbers[i]);
+                if(check == true)
                 {
-                    break;
+                    if (i < numbers.Length&&numbers[i] == '*')
+                    {
+                        numbers = Umnojenie(otveti, numbers.IndexOf('*'), numbers);
+                        numbers= Math(numbers);
+                    }
+                    if (i < numbers.Length&&numbers[i] == '/')
+                    {
+                        numbers = Delenie(otveti, numbers.IndexOf('/'), numbers);
+                        numbers = Math(numbers);
+                    }
                 }
-                if (numbers[i] == '-' && i != 0)
+            }
+            for(int i = 0; i < numbers.Length; i++)
+            {
+                bool check = !Char.IsNumber(numbers[i]);
+                if(check == true)
                 {
-                    numbers = Vichitanie(otveti, i, numbers);
-                    return numbers;
+                    if (i < numbers.Length&&numbers[i] == '+' )
+                    {
+                        numbers = Slojenie(otveti, numbers.IndexOf('+'), numbers);
+                        numbers = Math(numbers);
+                    }
+                    if(i < numbers.Length&&numbers[i] == '-' )
+                    {
+                        for (int j = 0; j < numbers.Length; j++)
+                        {
+                            if (!Char.IsNumber(numbers[j]) && numbers[j] != '-' && numbers[j] != ',')
+                            {
+                                break;
+                            }
+                            if (numbers[j] == '-' && j != 0)
+                            {
+                                numbers = Vichitanie(otveti, j, numbers);
+                                numbers = Math(numbers);
+                            }
+                        }
+                    }
                 }
             }
             return numbers;
         }
+        public string InBrackets(string numbers)
+        {
+            string result = string.Empty;
+            int bracketStartIndex = numbers.IndexOf('(');
+            int bracketEndIndex =0;
+            int bracketInCounter=0,bracketOutCounter=0;
+            for(int i = bracketStartIndex; i < numbers.Length;i++)
+            {
+                if (numbers[i] == '(') bracketInCounter++;
+                if(numbers[i] == ')')
+                {
+                    bracketOutCounter++;
+                    if (bracketInCounter == bracketOutCounter)
+                    {
+                        bracketEndIndex = i;
+                        break;
+                    }
+                }
+            }
+            string expressionInBrackets = numbers.Substring(bracketStartIndex+1, bracketEndIndex-bracketStartIndex-1);
+            result = numbers.Replace(numbers.Substring(bracketStartIndex , bracketEndIndex - bracketStartIndex+1 ), Math(expressionInBrackets));
+            return result;
+        }
         public string Skobka(string numbers)
         {
             int startSS;
-            int lastSS;
+            int lastSS = 0;
             string skobochka;
             int lenth;
-            for(int i = numbers.IndexOf('(')+1; i < numbers.Length; i++)
+            for(int i = numbers.Length-1; i >= 0; i--)
             {
                 if(numbers[i] == '(')
                 {
+                    for( int j = i; j < numbers.Length; j++)
+                    {
+                        if(numbers[j] == ')')
+                        {
+                            lastSS = j;
+                            break;
+                        }
+                    }
                     startSS = i;
-                    lastSS = numbers.IndexOf(')');
                     lenth = lastSS - startSS;
                     skobochka = numbers.Substring(startSS + 1, lenth - 1);
                     float n;
@@ -97,30 +148,7 @@ namespace WpfApp2
                     numbers = numbers.Replace(numbers.Substring(startSS, lenth + 1), skobochka);
                     break;
                 }
-                if(i == numbers.Length - 1)
-                {
-                    startSS = numbers.IndexOf('(');
-                    lastSS = numbers.IndexOf(')');
-                    lenth = lastSS - startSS;
-                    skobochka = numbers.Substring(startSS + 1, lenth - 1);
-                    float n;
-                    while (true)
-                    {
-                        if (skobochka.Contains('*') || skobochka.Contains('/') || skobochka.Contains('+') || skobochka.Contains('-'))
-                        {
-                            skobochka = Math(skobochka);
-                        }
-                        if (float.TryParse(skobochka, out n))
-                        {
-                            break;
-                        }
-                        if (!skobochka.Contains('*') && !skobochka.Contains('/') && !skobochka.Contains('+') && !skobochka.Contains('-'))
-                        {
-                            break;
-                        }
-                    }
-                    numbers = numbers.Replace(numbers.Substring(startSS, lenth + 1), skobochka);
-                }    
+              
             }
                 return numbers;
         }
